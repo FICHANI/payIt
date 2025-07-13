@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Pay_It | Dashboard</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Security-Policy" 
+      content="default-src 'self'; 
+               script-src 'self' 'unsafe-inline' https://js.stripe.com https://cdnjs.cloudflare.com; 
+               style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com;
+               img-src 'self' data: https://*.stripe.com;
+               connect-src 'self' https://api.stripe.com;
+               font-src 'self' https://cdnjs.cloudflare.com;
+               frame-src 'self' https://js.stripe.com">            
+
+    <script src="https://js.stripe.com/v3/"></script>
+    <!--link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"-->
+    <style>
+        :root {
+            --primary: #4f46e5;
+            --error: #ef4444;
+            --success: #10b981;
+        }
+        body {
+            font-family: Arial, sans-serif;
+            background: cadetblue;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            margin: 0; 
+        }
+        
+        header {
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid purple;
+            gap: 9px;
+            top: 0;
+            z-index: 1000;
+            position: fixed;
+            background: transparent;
+            width: 100%;
+            padding: 1rem;
+        }
+        
+        .logo {
+            font-weight: 700;
+            font-size: 1.5rem;
+            color: purple;
+        }
+        
+        .user-info {
+            display: flex;
+            gap: 1rem;
+        }
+        
+        .avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: skyblue;
+            color: purple;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+        
+        .txtArea {
+            display: flex;
+            flex-direction: column;
+            width: 400px;
+            margin-bottom: 10px;
+            align-items: center;
+        }
+
+        input[type="submit"],
+        .submit-button {
+            width: 150px;
+            height: 35px;
+            background: linear-gradient(transparent, skyblue);
+            color: purple;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            font-family: 'Consolas', 'Courier New', Courier, monospace;
+            font-size: 1em;
+            font-weight: bold;
+            margin-left: 220px;
+        }
+
+        input[type="submit"]:hover,
+        .submit-button:hover {
+            background: linear-gradient(transparent, purple); 
+            color: skyblue;
+        }
+        
+        .payment-container {
+            margin: 2rem auto;
+            padding: 2rem;
+            border: 1px solid purple;
+            width: 49vh;
+            border-radius: 8px;
+            align-items: center;
+            display: flex;
+            flex-direction: column;
+            gap: 0;
+            background: transparent;
+        }
+        
+        .payment-message {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            padding-left: -9px;
+        }
+        
+        .error {
+            background: transparent;
+            color: var(--error);
+        }
+        
+        .success {
+            background: transparent;
+            color: var(--success);
+        }
+        
+        .balances {
+            gap: 10px;
+            margin-bottom: 1rem;
+            display: flex;
+            flex-direction: row;
+            border-color: transparent;
+            background-color: transparent;
+            height: 25px;
+            font-size: 0.7em;
+        }
+        
+        .balance-card {
+            padding: 20px;
+            border-radius: 100px;
+            margin-top: -32px;
+            font-display: left;
+        }
+        
+        /* Form Styles */
+        input[type="text"],
+        input[type="email"],
+        input[type="number"],
+        #card-element,
+        input[type="password"],
+        select {
+            width: 80%;
+            padding: 6px 10px;
+            font-family: 'Lucida Console', Monaco, monospace;
+            font-size: 0.8em;
+            border: 1px solid skyblue;
+            border-radius: 20px;
+            text-align: center;
+            background: transparent;
+            color: black;
+            display: block;
+            margin: 5px auto;
+            transition: 0.3s;
+        }
+        
+        input[type="text"]:hover,
+        input[type="email"]:hover,
+        #card-element:hover,
+        input[type="number"]:hover,
+        input[type="password"]:hover,
+        select:hover {
+            box-shadow: 0 0 8px skyblue;
+            width: 80%;
+        }
+        
+        input[type="text"]:focus,
+        input[type="email"]:focus,
+        input[type="number"]:focus,
+        #card-element:focus,
+        input[type="password"]:focus,
+        select:focus {
+            outline: none;
+            border-color: purple;
+        }
+        
+        .lbl {
+            display: block;
+            text-align: left;
+            font-family: 'Lucida Console', Monaco, monospace;
+            font-size: 0.9em;
+            margin-bottom: -10px;
+            margin-left: 55px;
+            color: #333;
+            font-weight: bold;
+        }
+        
+        select {
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='skyblue' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 10px center;
+            background-size: 12px;
+            padding-right: 30px;
+        }
+        
+        .content {
+            margin-top: 120px;
+            padding: 1rem;
+            width: 100%;
+        }
+        
+        .site-footer {
+            margin-top: auto;
+            padding: 0;
+            width: 100%; 
+            align-items: center;
+            text-align: center;
+            font-size: 0.75em;
+            color: #000000;
+            background-color: purple;
+            position: fixed;
+            bottom: 0; 
+            z-index: 100;
+        }
+        
+        @media (max-width: 480px) {
+            .site-footer {
+                font-size: 0.65em;
+                padding: 15px 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="logo">Pay_It | Secure Online Payment platform</div>
+        <div class="user-info" th:if="${user}">
+            <span th:text="${user.fullname ?: 'Guest'}"></span>
+            <a href="/logout" style="color: red;">logout</a>
+
+            <div class="avatar" th:text="${user.fullname.substring(0,1).toUpperCase()}"></div>
+            <div class="balances">
+                <div class="balance-card">
+                    <p style="font-size: 0.8rem; font-weight: bold;">USD <span th:text="${#numbers.formatDecimal(user.usd, 1, 2)}"></span></p>
+                </div>
+                <div class="balance-card zig">
+                    <p style="font-size: 0.8rem; font-weight: bold;">ZiG <span th:text="${#numbers.formatDecimal(user.zig, 1, 2)}"></span></p>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="content">
+        <div class="payment-container">
+            <h2>Make Payment</h2>
+            <form id="payment-form">
+                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                
+                <div>
+                    <label for="recipient-email" class="lbl">Email</label>
+                    <input type="email" id="recipient-email" required placeholder="e.g unruly@876.gud">
+                </div>
+                <div>
+                    <label for="amount" class="lbl">Amount</label>
+                    <input type="number" id="amount" step="0.01" min="0.01" required placeholder="e.g 0.01">
+                </div>
+                <div>
+                    <label for="currency" class="lbl">Currency</label>
+                    <select id="currency" required>
+                        <option value="USD">USD ($)</option>
+                        <option value="ZiG">ZiG (Z)</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="description" class="lbl">Description (Optional)</label>
+                    <input type="text" id="description">
+                </div>
+                <br>
+                
+                <div id="card-element"></div>
+                <div id="card-errors" class="error" role="alert"></div>
+                <br>
+                <button type="submit" id="submit-button" class="submit-button">Pay Now</button>
+            </form>
+
+            <div th:if="${error}" class="payment-message error">
+                <i class="fas fa-exclamation-circle"></i> <span th:text="${error}"></span>
+            </div>
+            <div th:if="${success}" class="payment-message success">
+                <i class="fas fa-check-circle"></i> <span th:text="${success}"></span>
+            </div>
+        </div>
+
+        <!-- Transaction History -->
+        <div th:if="${transactions} != null and ${transactions.size()} > 0">
+            <h3>Recent Transactions</h3>
+            <table border="1" cellpadding="5">
+                <tr>
+                    <th>Recipient</th>
+                    <th>Amount</th>
+                    <th>Currency</th>
+                    <th>Date</th>
+                </tr>
+                <tr th:each="tx : ${transactions}">
+                    <td th:text="${tx.recipientEmail}"></td>
+                    <td th:text="${#numbers.formatDecimal(tx.amount, 1, 2)}"></td>
+                    <td th:text="${tx.currency}"></td>
+                    <td th:text="${#dates.format(tx.timestamp, 'yyyy-MM-dd HH:mm')}"></td>
+                </tr>
+            </table>
+        </div>
+
+        <!-- Receipt Section -->
+        <div th:if="${transaction}" class="payment-container">
+            <h2><i class="fas fa-receipt"></i> Payment Receipt</h2>
+            <div>
+                <p><strong>Transaction ID:</strong> <span th:text="${transaction.id}"></span></p>
+                <p><strong>Date:</strong> <span th:text="${#dates.format(transaction.timestamp, 'yyyy-MM-dd HH:mm')}"></span></p>
+                <p><strong>Recipient:</strong> <span th:text="${transaction.recipientEmail}"></span></p>
+                <p><strong>Amount:</strong> <span th:text="${#numbers.formatDecimal(transaction.amount, 1, 2)} + ' ' + ${transaction.currency}"></span></p>
+                <p><strong>Description:</strong> <span th:text="${transaction.description} ?: 'N/A'"></span></p>
+                <button onclick="window.print()" style="margin-top: 1rem; padding: 0.5rem 1rem; background: var(--primary); color: white; border: none; border-radius: 4px; cursor: pointer;">
+                    <i class="fas fa-print"></i> Print Receipt
+                </button>
+            </div>
+        </div>
+    </main>
+
+    <footer class="site-footer">
+        <p>&copy; 2025 BigDeal Business. All Rights Reserved</p>
+    </footer>
+
+    <style>
+        .content {
+            margin-top: 80px;  /* Adjust based on header height */
+            padding: 1rem;
+            }
+        .site-footer {
+        margin-top: auto;
+        padding: 0;
+        width: 100%; align-items: center;
+        text-align: center;
+        font-size: 0.75em;
+        color: #000000;
+        background-color: purple;
+        position: fixed;
+        bottom: 0; z-index: 100;
+        }
+        
+        .site-footer a {
+            color: skyblue;
+            text-decoration: none;
+            margin: 0 5px;
+        }
+        
+        .site-footer a:hover {
+            text-decoration: underline;
+        }
+        @media (max-width: 480px) {
+            .site-footer {
+            font-size: 0.65em;
+            padding: 15px 10px;
+            }
+        }
+    </style> 
+
+    <script th:inline="javascript" nonce="${cspNonce}">
+        /*<![CDATA[*/
+        document.addEventListener('DOMContentLoaded', () => {
+            // Initialize Stripe
+            const stripe = Stripe('pk_test_51Rjgt9PGmqzBvfLpZUD5E8pQPRMlPWbof7XYhPLzK8sQopU2OJ7cNVTkpvGuFrM4UylRg7TsywrMP1hcQANub9PL00eeOvR7oG');
+            const elements = stripe.elements();
+            const cardElement = elements.create('card');
+            cardElement.mount('#card-element');
+
+            // Handle real-time validation errors
+            cardElement.on('change', (event) => {
+                const errorElement = document.getElementById('card-errors');
+                if (event.error) {
+                    errorElement.textContent = event.error.message;
+                    errorElement.style.display = 'block';
+                } else {
+                    errorElement.textContent = '';
+                    errorElement.style.display = 'none';
+                }
+            });
+
+            // Handle form submission
+            document.getElementById('payment-form').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                
+                const submitButton = document.getElementById('submit-button');
+                const errorElement = document.getElementById('card-errors');
+                
+                try {
+                    // Disable button and clear errors
+                    submitButton.disabled = true;
+                    if (errorElement) errorElement.textContent = '';
+                    
+                    // Validate form inputs
+                    const amount = parseFloat(document.getElementById('amount').value);
+                    if (isNaN(amount) ) new Error('Invalid amount');
+                    
+                    const currency = document.getElementById('currency').value;
+                    const email = document.getElementById('recipient-email').value;
+                    if (!email.includes('@')) throw new Error('Invalid email');
+                    
+                    // Create payment method
+                    const { paymentMethod, error: paymentMethodError } = await stripe.createPaymentMethod({
+                        type: 'card',
+                        card: cardElement
+                    });
+                    
+                    if (paymentMethodError) throw paymentMethodError;
+                    
+                    // Create payment intent
+                    const response = await fetch('/create-payment-intent', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Accept': 'application/json',
+                            'X-XSRF-TOKEN': document.querySelector('input[name="_csrf"]').value
+                        },
+                        body: JSON.stringify({
+                            amount: Math.round(amount * 100), // Convert to cents
+                            currency: currency.toLowerCase(),
+                            description: document.getElementById('description').value || '',
+                            recipientEmail: email,
+                            paymentMethodId: paymentMethod.id
+                        })
+                    });
+                    
+                    if (!response.ok) {
+                        const errorData = await response.json();
+                        throw new Error(errorData.message || 'Payment failed');
+                    }
+                    
+                    const { clientSecret } = await response.json();
+                    
+                    // Confirm payment
+                    const { error: confirmationError, paymentIntent } = await stripe.confirmCardPayment(clientSecret, {
+                        payment_method: {
+                            card: cardElement,
+                            billing_details: { email }
+                        }
+                    });
+                    
+                    if (confirmationError) throw confirmationError;
+                    
+                    // Payment succeeded
+                    if (paymentIntent.status === 'succeeded') {
+                        window.location.href = `/payment-success?payment_id=${paymentIntent.id}`;
+                    }
+                    
+                } catch (error) {
+                    console.error('Payment error:', error);
+                    
+                    // User-friendly error messages
+                    let errorMessage = 'Payment failed. Please try again.';
+                    if (error.message) errorMessage = error.message;
+                    if (error.type === 'card_error') errorMessage = error.message;
+                    
+                    if (errorElement) {
+                        errorElement.textContent = errorMessage;
+                        errorElement.style.display = 'block';
+                    } else {
+                        alert(errorMessage);
+                    }
+                    
+                } finally {
+                    if (submitButton) submitButton.disabled = false;
+                }
+            });
+        });
+
+        function getCSRFToken() {
+            return document.querySelector('input[name="_csrf"]').value || 
+                   document.cookie.match(/XSRF-TOKEN=([^;]+)/)?.[1];
+        }
+        /*]]>*/
+    </script>
+</body>
+</html>

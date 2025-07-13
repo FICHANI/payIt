@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Admin Dashboard</title>
+</head>
+<body>
+    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+    <h2>Admin Dashboard</h2>
+    <p th:text="'Hello, ' + ${session.user.fullname} + '! Your role is: ' + ${session.user.role}"></p>
+    <a href="/logout"><button>Logout</button></a>
+    
+    <div th:if="${error}" style="color:red;">
+        <p th:text="${error}"></p>
+    </div>
+
+    <div>
+        <h2>Transactions</h2>
+        <p>Total: <span th:text="${transactions.size()}"></span></p>
+    </div>
+
+    <form method="post" action="/display-history" th:action="@{/display-history}">
+        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+        <label>Search By: </label>
+        <select name="searchBy">
+            <option value="Name">Name</option>            
+            <option value="Email">Email</option>
+        </select>
+        <input type="text" name="query" required>
+        <button type="submit">Search</button>
+    </form>
+
+    <div class="trans-history">
+        <h3>Transaction History</h3>
+        <table border="1" cellpadding="5">
+            <tr>
+                <th>Recipient</th>
+                <th>Amount</th>
+                <th>Currency</th>
+                <th>Date</th>
+            </tr>
+            <tr th:each="tx : ${transactions}">
+                <td th:text="${tx.recipientEmail}"></td>
+                <td th:text="${tx.amount}"></td>
+                <td th:text="${tx.currency}"></td>
+                <td th:text="${tx.timestamp}"></td>
+            </tr>
+        </table>
+    </div>
+</body>
+</html>

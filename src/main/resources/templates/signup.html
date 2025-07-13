@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Pay_It | Sign Up</title>
+	<style>
+		body {
+			font-family: Arial, sans-serif;
+			background: cadetblue;
+			display: flex;
+			justify-content: center;
+			align-items: center;
+			height: 100vh;
+			margin: 0;
+		}
+
+		.border {
+			width: 350px;
+			border-radius: 30px;
+			overflow: hidden;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			padding: 10px;
+			position: absolute;
+			top: 50%;
+			left: 50%;
+			transform: translate(-50%, -50%);
+		}
+
+		.border::before {
+			content: '';
+			position: absolute;
+			top: -50%;
+			left: -50%;
+			width: 200%;
+			height: 200%;
+			background: conic-gradient(
+			transparent,
+			transparent,
+			skyblue,
+			transparent,
+			transparent,
+			purple,
+			transparent
+			);
+			animation: rotate 6s linear infinite;
+			z-index: 0;
+		}
+
+		.border::after {
+			content: '';
+			position: absolute;
+			top: 3%;
+			left: 3%;
+			right: 3%;
+			bottom: 3%;
+			background: aliceblue;
+			z-index: 1;
+			border-radius: 35px;
+		}
+
+		@keyframes rotate {
+			0% { transform: rotate(0deg); }
+			100% { transform: rotate(360deg); }
+		}
+
+		.login-container {
+			position: relative;
+			display: flex;
+			flex-direction: column;
+			z-index: 2;
+			align-items: center;
+			width: 100%;
+			padding: 30px 10px;
+			border-radius: 30px;
+			background: cadetblue;
+		}
+
+		.login-container h2 {
+			margin-bottom: 20px;
+			color: #333;
+		}
+
+		.txtArea {
+			display: flex;
+			flex-direction: column;
+			width: 100%;
+			margin-bottom: 10px;
+			align-items: center;
+			gap: 10px;
+		}
+
+		.lbl {
+			font-weight: bold;
+			font-family: 'Consolas', 'Courier New', Courier, monospace;
+			font-size: 1em;
+			margin-bottom: -7px;
+			align-self: flex-start;
+			margin-left: 20px;
+			color: black; z-index: 2;
+		}
+
+		input[type="text"],
+		input[type="tel"],
+		input[type="email"],
+		input[type="password"] {
+			width: 80%;
+			padding: 6px 10px;
+			font-family: 'Lucida Console', Monaco, monospace;
+			font-size: 0.8em;
+			border: 1px solid skyblue;
+			border-radius: 20px;
+			text-align: center;
+			background: transparent;
+			color: black;
+		}
+
+		input[type="text"]:hover,
+		input[type="tel"]:hover,
+		input[type="email"]:hover,
+		input[type="password"]:hover {
+			box-shadow: 0 0 8px skyblue;
+			transition: 0.3s;
+		}
+
+		input[type="text"]:focus,
+		input[type="email"]:focus,
+		input[type="tel"]:focus,
+		input[type="password"]:focus {
+			outline: none;
+			border-color: purple;
+		}
+
+		input[type="submit"], .btn {
+			width: 150px;
+			height: 35px;
+			background: linear-gradient(transparent, skyblue);
+			color: purple;
+			border: none;
+			border-radius: 50px;
+			cursor: pointer;
+			font-family: 'Consolas', 'Courier New', Courier, monospace;
+			font-size: 1em;
+			font-weight: bold;
+			margin-top: 10px;
+		}
+
+		input[type="submit"]:hover, .btn:hover {
+			background: linear-gradient(transparent, purple); color: skyblue;
+		}
+
+		.signup-link {
+			margin-top: 20px;
+			font-size: 12px;
+		}
+
+		.signup-link a {
+			color: skyblue;
+			text-decoration: none;
+		}
+
+		.signup-link a:hover {
+			text-decoration: underline;
+			color: purple;
+		}
+
+
+		@media (max-width: 420px) {
+			.border {
+			width: 90%;
+			}
+
+			.login-container {
+			padding: 20px 5px;
+			}
+
+			.lbl {
+			margin-left: 25px;
+			font-size: 0.85em;
+			}
+
+			input[type="text"],
+			input[type="password"] {
+			width: 90%;
+			font-size: 0.75em;
+			}
+
+			input[type="submit"] {
+			width: 130px;
+			height: 33px;
+			font-size: 0.9em;
+			}
+
+			.login-container h2 {
+			font-size: 1.2em;
+			}
+		}
+	</style>
+</head>
+
+<body>
+	<div class="border">
+
+		<div class="login-container">
+			<h2>Sign Up</h2>
+
+			<!-- Signup Form -->
+			<form method="post" th:action="@{/signup}" th:object="${user}" onsubmit="return validatePasswords()">
+				<input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+				<div class="txtArea">
+					<input type="text" th:field="*{fullname}" placeholder="Full Name" required />
+					<input type="email" th:field="*{email}" placeholder="Email" required />
+					<input type="tel" th:field="*{phone}" placeholder="Phone" required />
+					<input type="text" th:field="*{bank}" placeholder="Bank" required />
+					<input type="hidden" th:field="*{usd}" placeholder="USD Account" value="200.00"/>
+					<input type="hidden" th:field="*{zig}" placeholder="ZiG Account" value="10000.00" />
+					<input type="text" th:field="*{address}" placeholder="Home Address" required />
+					<input type="password" id="pass1" name="pass1" placeholder="Password" required />
+					<input type="password" id="pass2" name="pass2" placeholder="Confirm Password" required />
+
+					<button type="submit" class="btn">Sign Up</button>
+					<span id="loading" style="display:none;">Processing...</span>
+				</div>
+			</form>
+
+			<div class="signup-link">
+				<p>Account. Already have an one? <a href="/login">Log In</a></p>
+			</div>
+
+			<!-- Error message -->
+			<div th:if="${error}" class="error">
+				<p th:text="${error}"></p>
+			</div>
+		</div>
+	</div>
+	<!-- Success message -->
+	<div th:if="${fullname}">
+		<h3>Signup Successful!</h3>
+		<p><strong>Name:</strong> <span th:text="${fullname}"></span></p>
+		<p><strong>Email:</strong> <span th:text="${email}"></span></p>
+		<p><strong>Phone:</strong> <span th:text="${phone}"></span></p>
+		<p><strong>Bank:</strong> <span th:text="${bank}"></span></p>
+		<p><strong>USD:</strong> <span th:text="${usd}"></span></p>
+		<p><strong>ZiG:</strong> <span th:text="${zig}"></span></p>
+		<p><strong>Address:</strong> <span th:text="${address}"></span></p>
+	</div>
+    <script>
+        function validatePasswords() {
+            const pass1 = document.getElementById('pass1').value;
+            const pass2 = document.getElementById('pass2').value;
+            
+            if (pass1 !== pass2) {
+                alert("Passwords do not match!");
+                return false;
+            }
+            
+            document.getElementById("loading").style.display = "inline";
+            return true;
+        }
+    </script>
+</body>
+</html>
